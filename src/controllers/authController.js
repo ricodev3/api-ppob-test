@@ -79,57 +79,89 @@ exports.login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
-      status: 1,
-      message: 'Invalid input'
+      status: 102,
+      message: 'Paramter email tidak sesuai format',
+      data: null
     });
   }
 
   const { email, password } = req.body;
 
   try {
+    // 1. Check if user exists
     const result = await pool.query(
       'SELECT id, email, password FROM users WHERE email = $1',
       [email]
     );
 
-    if (!result.rowCount) {
+    // 🔴 CRITICAL FIX: Check if user was found
+    if (!result.rows.length) {
       return res.status(400).json({
-        status: 1,
-        message: 'User not found'
+        status: 103,  // Changed from 1 to match your requirements
+        message: 'Username atau password salah',
+        data: null
       });
     }
 
     const user = result.rows[0];
 
+    // 2. DEBUG: Log what we found
+    console.log('🔍 Login attempt for email:', email);
+    console.log('🔍 User found:', { id: user.id, email: user.email });
+    console.log('🔍 JWT_SECRET exists?', !!process.env.JWT_SECRET);
+    
+    // 3. Verify password
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
+      console.log('❌ Password mismatch for user:', email);
       return res.status(400).json({
-        status: 1,
-        message: 'Wrong password'
+        status: 103,
+        message: 'Username atau password salah',
+        data: null
       });
     }
 
+    // 4. Create JWT token (with debugging)
+    console.log('🔑 Creating JWT with payload:', {
+      user_id: user.id,
+      email: user.email
+    });
+    
     const token = jwt.sign(
       {
         user_id: user.id,
         email: user.email
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET,  // Make sure this is set!
       { expiresIn: '12h' }
     );
 
+    console.log('✅ Login successful for:', email);
+    console.log('✅ Token created (first 50 chars):', token.substring(0, 50) + '...');
+
     return res.json({
       status: 0,
-      message: 'Login berhasil',
-      data: { token }
+      message: 'Login Sukses',
+      data: { 
+        token: token,
+        // Optional: add token info
+        token_type: 'Bearer',
+        expires_in: 43200,  // 12 hours in seconds
+        user: {
+          id: user.id,
+          email: user.email
+        }
+      }
     });
 
   } catch (err) {
-    console.error(err);
+    console.error('❌ Login error:', err);
+    console.error('❌ Error stack:', err.stack);
+    
     return res.status(500).json({
       status: 1,
-      message: 'Internal Server Error'
+      message: 'Internal Server Error',
+      data: null
     });
   }
 };
-
