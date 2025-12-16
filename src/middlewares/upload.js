@@ -4,9 +4,8 @@ const path = require('path');
 const fs = require('fs');
 
 // Determine upload directory based on environment
-// Railway uses /tmp for ephemeral storage, local uses src/uploads
 const uploadDir = process.env.NODE_ENV === 'production' 
-  ? '/tmp/uploads'  // Railway's temporary storage
+  ? '/tmp/uploads'
   : 'src/uploads';
 
 // Create directory if it doesn't exist
@@ -21,10 +20,10 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Create unique filename with original extension
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const extension = path.extname(file.originalname).toLowerCase();
-    cb(null, 'profile-' + req.user?.email?.split('@')[0] + '-' + uniqueSuffix + extension);
+    const userPrefix = req.user?.email ? req.user.email.split('@')[0] : 'user';
+    cb(null, `profile-${userPrefix}-${uniqueSuffix}${extension}`);
   }
 });
 
@@ -37,6 +36,7 @@ const fileFilter = (req, file, cb) => {
   if (mimetype && extname) {
     cb(null, true);
   } else {
+    // This error will be caught by our error handler
     cb(new Error('Format Image tidak sesuai. Hanya JPEG dan PNG yang diperbolehkan.'), false);
   }
 };
@@ -46,9 +46,54 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-    files: 1 // Only one file
+    fileSize: 5 * 1024 * 1024,
+    files: 1
   }
 });
 
-module.exports = upload;
+// ✅ CRITICAL: Add error handling middleware
+const handleFileUpload = (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      // Handle file type errors
+      if (err.message.includes('Format Image tidak sesuai')) {
+        return res.status(400).json({
+          status: 102,
+          message: 'Format Image tidak sesuai',
+          data: null
+        });
+      }
+      
+      // Handle file size errors
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          status: 102,
+          message: 'File terlalu besar. Maksimum 5MB',
+          data: null
+        });
+      }
+      
+      // Handle other Multer errors
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({
+          status: 102,
+          message: 'Error upload file',
+          data: null
+        });
+      }
+      
+      // Unknown error
+      console.error('Upload error:', err);
+      return res.status(500).json({
+        status: 1,
+        message: 'Internal Server Error',
+        data: null
+      });
+    }
+    
+    // No error, continue to controller
+    next();
+  });
+};
+
+module.exports = handleFileUpload; // ✅ Export the error handler, not raw multer

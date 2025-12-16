@@ -299,7 +299,7 @@ router.put('/profile/update', authMiddleware, updateProfile);
  *                   message: "Token tidak tidak valid atau kadaluwarsa"
  *                   data: null
  */
-router.put('/profile/image', authMiddleware, upload.single('file'),updateProfileImage);
+router.put('/profile/image', authMiddleware, upload, updateProfileImage);
 
 
 module.exports = router;
