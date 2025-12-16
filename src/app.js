@@ -7,30 +7,24 @@ const PORT = process.env.PORT || 3000;
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
-const path = require('path'); // ✅ ADD THIS
-const fs = require('fs'); // ✅ ADD THIS
+const path = require('path'); 
+const fs = require('fs'); 
 
 const app = express();
 
 app.use(express.json());
 
-// ✅ FIX: Create upload directory BEFORE serving static files
+// Determine upload directory (same logic as upload.js)
 const uploadDir = process.env.NODE_ENV === 'production' 
   ? '/tmp/uploads'
   : path.join(__dirname, 'src/uploads');
 
-// ✅ CRITICAL: Create directory synchronously at startup
+// Create directory if it doesn't exist
 if (!fs.existsSync(uploadDir)) {
-  try {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    console.log(`✅ Created upload directory: ${uploadDir}`);
-  } catch (err) {
-    console.error(`❌ Failed to create upload directory: ${err.message}`);
-    // Don't crash, continue without upload directory
-  }
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Now serve static files
+// Serve static files from uploads directory
 app.use('/uploads', express.static(uploadDir));
 
 // ✅ ADD Swagger UI options for better token handling
