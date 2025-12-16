@@ -105,10 +105,6 @@ exports.login = async (req, res) => {
 
     const user = result.rows[0];
 
-    // 2. DEBUG: Log what we found
-    console.log('🔍 Login attempt for email:', email);
-    console.log('🔍 User found:', { id: user.id, email: user.email });
-    console.log('🔍 JWT_SECRET exists?', !!process.env.JWT_SECRET);
     
     // 3. Verify password
     const match = await bcrypt.compare(password, user.password);
@@ -121,11 +117,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 4. Create JWT token (with debugging)
-    console.log('🔑 Creating JWT with payload:', {
-      user_id: user.id,
-      email: user.email
-    });
     
     const token = jwt.sign(
       {
@@ -136,27 +127,15 @@ exports.login = async (req, res) => {
       { expiresIn: '12h' }
     );
 
-    console.log('✅ Login successful for:', email);
-    console.log('✅ Token created (first 50 chars):', token.substring(0, 50) + '...');
-
     return res.json({
       status: 0,
       message: 'Login Sukses',
       data: { 
-        token: token,
-        // Optional: add token info
-        token_type: 'Bearer',
-        expires_in: 43200,  // 12 hours in seconds
-        user: {
-          id: user.id,
-          email: user.email
-        }
+        token: token
       }
     });
 
   } catch (err) {
-    console.error('❌ Login error:', err);
-    console.error('❌ Error stack:', err.stack);
     
     return res.status(500).json({
       status: 1,
