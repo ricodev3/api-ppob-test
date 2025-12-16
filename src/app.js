@@ -20,31 +20,7 @@ app.use('/api', require('./routes/serviceRoute'));
 app.use('/api', require('./routes/balanceRoute'));
 app.use('/api', require('./routes/topupRoute'));
 app.use('/api', require('./routes/transactionRoute'));
-app.use('/api-docs', swaggerUi.serve, 
-  swaggerUi.setup(swaggerSpec, {
-    explorer: true,
-    swaggerOptions: {
-      // Enable try-it-out by default
-      tryItOutEnabled: true,
-      // Auto submit requests
-      requestSnippetsEnabled: true,
-      // Custom JavaScript from swaggerSpec
-      onComplete: function() {
-        // This runs after Swagger UI loads
-        console.log('Swagger UI loaded - auto-auth ready');
-        
-        // Check URL for token parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const tokenFromUrl = urlParams.get('token');
-        if (tokenFromUrl) {
-          window.autoAuthorize(tokenFromUrl);
-        }
-      }
-    },
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'API Documentation'
-  })
-);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 // Health check endpoint
