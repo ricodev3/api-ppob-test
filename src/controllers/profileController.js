@@ -80,13 +80,8 @@ exports.updateProfile = async (req, res) => {
 };
 
 exports.updateProfileImage = async (req, res) => {
-  console.log('🔄 updateProfileImage called');
-  console.log('📁 File:', req.file ? 'Exists' : 'Missing');
-  console.log('👤 User from token:', req.user);
-  
   try {
     if (!req.file) {
-      console.log('❌ No file uploaded');
       return res.status(400).json({
         status: 102,
         message: 'Format Image tidak sesuai',
@@ -94,46 +89,25 @@ exports.updateProfileImage = async (req, res) => {
       });
     }
 
-    console.log('📄 File details:', {
-      filename: req.file.filename,
-      mimetype: req.file.mimetype,
-      size: req.file.size
-    });
-
     const email = req.user.email;
-    console.log('📧 User email:', email);
     
-    // ✅ SIMPLIFIED URL GENERATION FOR DEBUGGING
+    // Generate image URL
     const baseUrl = process.env.API_URL 
       ? process.env.API_URL.replace(/\/$/, '')
       : `http://localhost:${process.env.PORT || 3000}`;
     
     const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-    console.log('🔗 Generated URL:', imageUrl);
-    console.log('🔗 API_URL from env:', process.env.API_URL);
     
-    // ✅ CHECK DATABASE CONNECTION
-    console.log('🔌 Testing database connection...');
-    const testQuery = await pool.query('SELECT NOW()');
-    console.log('✅ Database connected:', testQuery.rows[0]);
-    
-    // ✅ UPDATE DATABASE
-    console.log('💾 Updating database for email:', email);
+    // Update database
     const result = await pool.query(
       `UPDATE users
-       SET profile_image = $1, updated_at = CURRENT_TIMESTAMP
+       SET profile_image = $1
        WHERE email = $2
        RETURNING email, first_name, last_name, profile_image`,
       [imageUrl, email]
     );
 
-    console.log('📊 Update result:', {
-      rowCount: result.rowCount,
-      rows: result.rows
-    });
-
     if (!result.rowCount) {
-      console.log('❌ User not found in database');
       return res.status(404).json({
         status: 1,
         message: 'User tidak ditemukan',
@@ -141,7 +115,6 @@ exports.updateProfileImage = async (req, res) => {
       });
     }
 
-    console.log('✅ Update successful');
     return res.json({
       status: 0,
       message: 'Update Profile Image berhasil',
@@ -149,13 +122,10 @@ exports.updateProfileImage = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('🔥 ERROR in updateProfileImage:', err.message);
-    console.error('📋 Stack trace:', err.stack);
+    // Production error logging (without stack traces in response)
+    console.error(`[ProfileImage Error] ${err.message}`);
     
-    // Log specific error details
-    if (err.code) console.error('🔢 Error code:', err.code);
-    if (err.detail) console.error('📝 Error detail:', err.detail);
-    
+    // Return generic error to client
     return res.status(500).json({
       status: 1,
       message: 'Internal Server Error',
