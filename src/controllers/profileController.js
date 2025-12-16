@@ -80,9 +80,13 @@ exports.updateProfile = async (req, res) => {
 };
 
 exports.updateProfileImage = async (req, res) => {
+  console.log('🔄 updateProfileImage called');
+  console.log('📁 File:', req.file ? 'Exists' : 'Missing');
+  console.log('👤 User from token:', req.user);
+  
   try {
-    // Check if file was uploaded
     if (!req.file) {
+      console.log('❌ No file uploaded');
       return res.status(400).json({
         status: 102,
         message: 'Format Image tidak sesuai',
@@ -90,37 +94,31 @@ exports.updateProfileImage = async (req, res) => {
       });
     }
 
-    // Validate file type
-    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (!allowedMimeTypes.includes(req.file.mimetype)) {
-      return res.status(400).json({
-        status: 102,
-        message: 'Format Image tidak sesuai. Hanya JPEG dan PNG yang diperbolehkan',
-        data: null
-      });
-    }
+    console.log('📄 File details:', {
+      filename: req.file.filename,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
 
     const email = req.user.email;
+    console.log('📧 User email:', email);
     
-    // Generate image URL using your API_URL environment variable
-    let baseUrl;
+    // ✅ SIMPLIFIED URL GENERATION FOR DEBUGGING
+    const baseUrl = process.env.API_URL 
+      ? process.env.API_URL.replace(/\/$/, '')
+      : `http://localhost:${process.env.PORT || 3000}`;
     
-    if (process.env.API_URL) {
-      // Use API_URL if set (e.g., https://your-app.up.railway.app)
-      baseUrl = process.env.API_URL.replace(/\/$/, ''); // Remove trailing slash
-    } else if (process.env.NODE_ENV === 'production') {
-      // Railway environment without explicit API_URL
-      baseUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN || 'localhost:3000'}`;
-    } else {
-      // Local development
-      const port = process.env.PORT || 3000;
-      baseUrl = `http://localhost:${port}`;
-    }
-    
-    // Construct the full image URL
     const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    console.log('🔗 Generated URL:', imageUrl);
+    console.log('🔗 API_URL from env:', process.env.API_URL);
     
-    // Update database using SUPABASE_DB_URL connection
+    // ✅ CHECK DATABASE CONNECTION
+    console.log('🔌 Testing database connection...');
+    const testQuery = await pool.query('SELECT NOW()');
+    console.log('✅ Database connected:', testQuery.rows[0]);
+    
+    // ✅ UPDATE DATABASE
+    console.log('💾 Updating database for email:', email);
     const result = await pool.query(
       `UPDATE users
        SET profile_image = $1, updated_at = CURRENT_TIMESTAMP
@@ -129,7 +127,13 @@ exports.updateProfileImage = async (req, res) => {
       [imageUrl, email]
     );
 
+    console.log('📊 Update result:', {
+      rowCount: result.rowCount,
+      rows: result.rows
+    });
+
     if (!result.rowCount) {
+      console.log('❌ User not found in database');
       return res.status(404).json({
         status: 1,
         message: 'User tidak ditemukan',
@@ -137,7 +141,7 @@ exports.updateProfileImage = async (req, res) => {
       });
     }
 
-    // Return success response
+    console.log('✅ Update successful');
     return res.json({
       status: 0,
       message: 'Update Profile Image berhasil',
@@ -145,18 +149,12 @@ exports.updateProfileImage = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Profile image update error:', err.message);
+    console.error('🔥 ERROR in updateProfileImage:', err.message);
+    console.error('📋 Stack trace:', err.stack);
     
-    // Handle specific multer errors
-    if (err instanceof multer.MulterError) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({
-          status: 102,
-          message: 'File terlalu besar. Maksimum 5MB',
-          data: null
-        });
-      }
-    }
+    // Log specific error details
+    if (err.code) console.error('🔢 Error code:', err.code);
+    if (err.detail) console.error('📝 Error detail:', err.detail);
     
     return res.status(500).json({
       status: 1,
