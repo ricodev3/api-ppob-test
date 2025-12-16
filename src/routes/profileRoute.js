@@ -6,6 +6,30 @@ const upload = require('../middlewares/uploadMiddleware');
 const { getProfile, updateProfile,updateProfileImage } = require('../controllers/profileController');
 /**
  * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: integer
+ *           example: 108
+ *         message:
+ *           type: string
+ *           example: "Token tidak tidak valid atau kadaluwarsa"
+ *         data:
+ *           type: object
+ *           nullable: true
+ *           example: null
+ */
+
+/**
+ * @swagger
  * /api/profile:
  *   get:
  *     tags: [1. Module Membership]  
