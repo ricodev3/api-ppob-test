@@ -81,6 +81,7 @@ exports.updateProfile = async (req, res) => {
 
 exports.updateProfileImage = async (req, res) => {
   try {
+    // Check if file was uploaded
     if (!req.file) {
       return res.status(400).json({
         status: 102,
@@ -91,14 +92,14 @@ exports.updateProfileImage = async (req, res) => {
 
     const email = req.user.email;
     
-    // Generate image URL
+    // Generate image URL using API_URL environment variable
     const baseUrl = process.env.API_URL 
-      ? process.env.API_URL.replace(/\/$/, '')
+      ? process.env.API_URL.replace(/\/$/, '') // Remove trailing slash
       : `http://localhost:${process.env.PORT || 3000}`;
     
     const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
     
-    // Update database
+    // Update database (removed updated_at since column doesn't exist)
     const result = await pool.query(
       `UPDATE users
        SET profile_image = $1
@@ -122,10 +123,7 @@ exports.updateProfileImage = async (req, res) => {
     });
 
   } catch (err) {
-    // Production error logging (without stack traces in response)
-    console.error(`[ProfileImage Error] ${err.message}`);
-    
-    // Return generic error to client
+    console.error('Profile image update error:', err.message);
     return res.status(500).json({
       status: 1,
       message: 'Internal Server Error',
