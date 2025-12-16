@@ -104,7 +104,7 @@ CREATE TABLE transaction_items (
     subtotal INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+```
 🔧 Installation & Setup
 Prerequisites
 Node.js (v18 or higher)
