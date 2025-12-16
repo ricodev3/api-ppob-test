@@ -1,0 +1,9 @@
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.SUPABASE_DB_URL,
+  ssl: { rejectUnauthorized: false },
+  family: process.env.NODE_ENV === 'production' ? undefined : 4
+});
+
+module.exports = pool;
