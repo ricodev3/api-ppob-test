@@ -1,4 +1,3 @@
-// upload.js - Multer configuration for file uploads
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -51,7 +50,7 @@ const upload = multer({
   }
 });
 
-// ✅ CRITICAL: Add error handling middleware
+
 const handleFileUpload = (req, res, next) => {
   upload.single('file')(req, res, (err) => {
     if (err) {
@@ -91,9 +90,8 @@ const handleFileUpload = (req, res, next) => {
       });
     }
     
-    // No error, continue to controller
     next();
   });
 };
 
-module.exports = handleFileUpload; // ✅ Export the error handler, not raw multer
+module.exports = handleFileUpload; 

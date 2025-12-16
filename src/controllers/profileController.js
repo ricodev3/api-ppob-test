@@ -1,5 +1,6 @@
 const pool = require('../db');
 
+//Get Profile Logic
 exports.getProfile = async (req, res) => {
   try {
     const email = req.user.email;
@@ -34,6 +35,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+// Update Profile Logic
 exports.updateProfile = async (req, res) => {
   try {
     const email = req.user.email;
@@ -79,11 +81,10 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+//Update Profile Image Logic
 exports.updateProfileImage = async (req, res) => {
   try {
-    // File validation is already done by upload middleware
-    // So if we reach here, the file is valid JPEG/PNG
-    
+  
     const email = req.user.email;
     
     // Generate image URL
@@ -100,7 +101,6 @@ exports.updateProfileImage = async (req, res) => {
     
     const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
     
-    // ✅ FIX: Remove updated_at column (it doesn't exist in your DB)
     const result = await pool.query(
       `UPDATE users
        SET profile_image = $1

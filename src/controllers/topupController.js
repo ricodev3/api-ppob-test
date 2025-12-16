@@ -1,5 +1,6 @@
 const pool = require('../db');
 
+//Topup Logic
 exports.topupBalance = async (req, res) => {
   const { top_up_amount } = req.body;
   const { user_id } = req.user;

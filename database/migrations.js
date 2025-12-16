@@ -28,6 +28,7 @@ async function runMigrations() {
         profile_image TEXT,
         balance BIGINT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
     

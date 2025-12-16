@@ -4,6 +4,7 @@ const { validationResult, body } = require('express-validator');
 const jwt = require('jsonwebtoken');
 
 
+// Register Logic
 exports.register = async (req, res) => {
   await body('email').isEmail().run(req);
   await body('password').isLength({ min: 8 }).run(req);
@@ -71,7 +72,7 @@ exports.register = async (req, res) => {
 };
 
 
-
+// Login Logic
 exports.login = async (req, res) => {
   await body('email').isEmail().run(req);
   await body('password').isLength({ min: 8 }).run(req);

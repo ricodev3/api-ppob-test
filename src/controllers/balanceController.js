@@ -1,5 +1,6 @@
 const pool = require('../db');
 
+// Get Balance Logic
 exports.getBalance = async (req, res) => {
   try {
     const email = req.user.email;

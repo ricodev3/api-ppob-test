@@ -1,5 +1,6 @@
 const pool = require('../db');
 
+//Get Service Logic
 exports.getServices = async (req, res) => {
   try {
     const result = await pool.query(

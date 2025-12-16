@@ -7,7 +7,8 @@ CREATE TABLE users (
     last_name VARCHAR(50),
     profile_image TEXT,
     balance BIGINT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- BANNERS

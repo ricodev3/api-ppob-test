@@ -1,6 +1,7 @@
 // src/controllers/transactionController.js
 const pool = require('../db');
 
+//Create Transaction Logic
 exports.createTransaction = async (req, res) => {
   const { service_code } = req.body;
   const { user_id } = req.user;
@@ -111,6 +112,7 @@ exports.createTransaction = async (req, res) => {
   }
 };
 
+//Get History Transaction Logic
 exports.getHistory = async (req, res) => {
   const { user_id } = req.user;
   const { limit, offset = 0 } = req.query;

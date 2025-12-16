@@ -22,6 +22,7 @@ erDiagram
         text profile_image
         bigint balance
         timestamp created_at
+        timestamp updated_at
     }
     
     banners {

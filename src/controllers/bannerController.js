@@ -1,5 +1,6 @@
 const pool = require('../db');
 
+//Get Banner Logic
 exports.getBanners = async (req, res) => {
   try {
     const result = await pool.query(
