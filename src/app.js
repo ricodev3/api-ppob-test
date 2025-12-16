@@ -14,19 +14,23 @@ const app = express();
 
 app.use(express.json());
 
-// ✅ IMPROVED: Dynamic upload directory for Railway
-// Determine the correct upload directory based on environment
+// ✅ FIX: Create upload directory BEFORE serving static files
 const uploadDir = process.env.NODE_ENV === 'production' 
-  ? '/tmp/uploads'  // Railway uses /tmp for ephemeral storage
-  : 'src/uploads';  // Local development
+  ? '/tmp/uploads'
+  : path.join(__dirname, 'src/uploads');
 
-// Create upload directory if it doesn't exist
+// ✅ CRITICAL: Create directory synchronously at startup
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log(`📁 Created upload directory: ${uploadDir}`);
+  try {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log(`✅ Created upload directory: ${uploadDir}`);
+  } catch (err) {
+    console.error(`❌ Failed to create upload directory: ${err.message}`);
+    // Don't crash, continue without upload directory
+  }
 }
 
-// ✅ Serve static files from the dynamic upload directory
+// Now serve static files
 app.use('/uploads', express.static(uploadDir));
 
 // ✅ ADD Swagger UI options for better token handling
