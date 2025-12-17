@@ -1,7 +1,7 @@
 # API PPOB - Nutech Integration API
 
 ## 📋 Project Overview
-A **Payment Point Online Bank (PPOB)** API built with Express.js for technical test implementation. This API handles membership, services, transactions, and balance management with JWT authentication and Swagger documentation.
+A **Payment Point Online Bank (PPOB)** API built with Express.js for a technical test. This API handles membership management, services, transactions, and balance management with JWT authentication.
 
 ## 🚀 Live Deployment
 - **API URL**: `https://nutech-api-production-d655.up.railway.app`
@@ -13,32 +13,34 @@ A **Payment Point Online Bank (PPOB)** API built with Express.js for technical t
 - **Database**: Supabase PostgreSQL
 - **Authentication**: JWT (JSON Web Tokens)
 - **Documentation**: Swagger/OpenAPI 3.0
-- **File Upload**: Multer with Railway-compatible storage
+- **File Upload**: Multer
 - **Deployment**: Railway.app
 
 ## 📁 Project Structure
 
+```plaintext
 api-ppob-test/
 ├── src/
-│ ├── controllers/ # Business logic handlers
-│ ├── routes/ # API route definitions
-│ ├── middleware/ # Authentication & upload middleware
-│ └── uploads/ # Local file storage (development)
+│   ├── controllers/        # Business logic handlers
+│   ├── routes/             # API route definitions
+│   ├── middleware/         # Authentication & upload middleware
+│   └── uploads/            # Local file storage (development)
 ├── database/
-│ └── schema/
-│ └── ddl.sql # Database schema
-├── scripts/ # Setup and utility scripts
-├── utils/ # Helper functions
-├── app.js # Main application entry point
-├── swagger.js # Swagger/OpenAPI configuration
+│   ├── schema/
+│   └── ddl.sql             # Database schema
+├── scripts/                # Setup and utility scripts
+├── utils/                  # Helper functions
+├── app.js                  # Main application entry point
+├── swagger.js              # Swagger/OpenAPI configuration
 ├── package.json
 ├── .env.example
-└── railway.json # Railway deployment configuration
-
+└── railway.json            # Railway deployment configuration
+```
 
 ## 📊 Database Schema (DDL)
 
 ### Users Table
+
 ```sql
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -50,12 +52,11 @@ CREATE TABLE users (
     balance INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
 
--- Optional: Add updated_at column if needed
--- ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+### Banners Table
 
-Banners Table
-
+```sql
 CREATE TABLE banners (
     id SERIAL PRIMARY KEY,
     banner_name VARCHAR(255) NOT NULL,
@@ -63,10 +64,11 @@ CREATE TABLE banners (
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
 
+### Services Table
 
-Services Table
-
+```sql
 CREATE TABLE services (
     id SERIAL PRIMARY KEY,
     service_code VARCHAR(50) UNIQUE NOT NULL,
@@ -75,25 +77,28 @@ CREATE TABLE services (
     service_tarif INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
 
-Transactions Table
+### Transactions Table
 
+```sql
 CREATE TABLE transactions (
     id SERIAL PRIMARY KEY,
     invoice_number VARCHAR(100) UNIQUE NOT NULL,
-    transaction_type VARCHAR(50) NOT NULL, -- 'PAYMENT' or 'TOPUP'
+    transaction_type VARCHAR(50) NOT NULL,
     description TEXT,
     total_amount INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Index for faster user transaction queries
 CREATE INDEX idx_transactions_user_id ON transactions(user_id);
 CREATE INDEX idx_transactions_created_at ON transactions(created_at DESC);
+```
 
-Transaction Items Table (for detailed payments)
+### Transaction Items Table
 
+```sql
 CREATE TABLE transaction_items (
     id SERIAL PRIMARY KEY,
     transaction_id INTEGER REFERENCES transactions(id) ON DELETE CASCADE,
@@ -104,162 +109,144 @@ CREATE TABLE transaction_items (
     subtotal INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
 
-🔧 Installation & Setup
-Prerequisites
-Node.js (v18 or higher)
+## 🔧 Installation & Setup
 
-PostgreSQL database (Supabase recommended)
+### Prerequisites
+- Node.js (v18 or higher)
+- PostgreSQL database (Supabase recommended)
+- npm or yarn
 
-npm or yarn
+### Steps
 
-1. Clone Repository
+1. **Clone Repository**
 
-git clone https://github.com/ricodev3/api-ppob-test.git
-cd api-ppob-test
+   ```bash
+   git clone https://github.com/ricodev3/api-ppob-test.git
+   cd api-ppob-test
+   ```
 
-2. Install Dependencies
+2. **Install Dependencies**
 
-npm install
+   ```bash
+   npm install
+   ```
 
-3. Environment Configuration
+3. **Environment Configuration**
 
-Copy .env.example to .env and configure:
+   Copy `.env.example` to `.env` and configure:
 
-# Server Configuration
-PORT=3000
-NODE_ENV=development
-API_URL=http://localhost:3000
+   ```dotenv
+   # Server Configuration
+   PORT=3000
+   NODE_ENV=development
+   API_URL=http://localhost:3000
 
-# Database (Supabase)
-SUPABASE_DB_URL=postgresql://username:password@host:5432/database
+   # Database (Supabase)
+   SUPABASE_DB_URL=postgresql://username:password@host:5432/database
 
-# JWT Authentication
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+   # JWT Authentication
+   JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 
-# Railway (for production)
-RAILWAY_PUBLIC_DOMAIN=your-app.up.railway.app
+   # Railway (for production)
+   RAILWAY_PUBLIC_DOMAIN=your-app.up.railway.app
+   ```
 
-4. Database Setup
+4. **Database Setup**
 
-# Run the DDL schema
-psql -d your_database -f database/schema/ddl.sql
+   ```bash
+   # Run the DDL schema
+   psql -d your_database -f database/schema/ddl.sql
+   
+   # Or use the setup script
+   npm run setup
+   ```
 
-# Or use the setup script
-npm run setup
+5. **Start Development Server**
 
-5. Start Development Server
+   ```bash
+   # Development mode with auto-restart
+   npm run dev
 
-# Development mode with auto-restart
-npm run dev
+   # Production mode
+   npm start
+   ```
 
-# Production mode
-npm start
+   The API will be available at `http://localhost:3000`.
 
-The API will be available at http://localhost:3000
+## 📖 API Documentation
 
-📖 API Documentation
-Access Swagger UI
-Once the server is running, visit: http://localhost:3000/api-docs
+- **Swagger UI**: `http://localhost:3000/api-docs`
 
-Authentication
-Register - Create a new user account
+### Authentication Flow
+1. **Register**: Create a new user account.
+2. **Login**: Obtain a JWT token.
+3. **Use Token**: Add `Authorization: Bearer <token>` to API request headers.
 
-Login - Get JWT token
+### Available Modules
 
-Use Token - Add Authorization: Bearer <token> to request headers
+#### Membership Module
+- `POST /api/registration`: User registration.
+- `POST /api/login`: User login.
+- `GET /api/profile`: Get user profile.
+- `PUT /api/profile`: Update user profile.
+- `PUT /api/profile/image`: Upload profile image (JPEG/PNG).
 
-Available Modules
+#### Services Module
+- `GET /api/banners`: Get all banners.
+- `GET /api/services`: Get all services.
 
-1. Membership Module
+#### Transaction Module
+- `POST /api/topup`: Top up balance.
+- `POST /api/transaction`: Make a payment.
+- `GET /api/transaction/history`: Get transaction history.
+- `GET /api/balance`: Check current balance.
+- `PUT /api/balance`: Update balance.
 
-POST /api/registration - User registration
+## ⚠️ Important Notes
 
-POST /api/login - User login
+### File Storage
+- **Development**: Files stored in `src/uploads/`.
+- **Production**: Files stored in `/tmp/uploads/` (ephemeral).
+- **Recommendation**: Use cloud storage (e.g., S3, Cloudinary) for production.
 
-GET /api/profile - Get user profile
+### Database Considerations
+- Add `updated_at` column if needed.
+- Index frequently queried columns.
+- Regular backups for production.
 
-PUT /api/profile - Update user profile
+### Security
+- Always use HTTPS in production.
+- Keep `JWT_SECRET` secure and rotate regularly.
+- Validate all user inputs.
+- Implement rate limiting in production.
 
-PUT /api/profile/image - Upload profile image (JPEG/PNG only)
+## 🐛 Troubleshooting
 
-2. Services Module
+### Common Issues
 
-GET /api/banners - Get all banners
+- **Service Unavailable on Railway**
+  - Check environment variables.
+  - Verify database connection.
+  - Inspect Railway logs.
 
-GET /api/services - Get all services
+- **Database Connection Errors**
+  - Verify `SUPABASE_DB_URL`.
+  - Ensure the database is accessible.
+  - Configure SSL properly.
 
-3. Transaction Module
+- **File Upload Errors**
+  - Check file size (max 5MB).
+  - Verify file format (JPEG/PNG).
+  - Ensure upload directory is writable.
 
-POST /api/topup - Top up balance
+### Debug Mode
+Set `NODE_ENV=development` for detailed logs.
 
-POST /api/transaction - Make a payment
-
-GET /api/transaction/history - Get transaction history
-
-GET /api/balance - Check current balance
-
-PUT /api/balance - Update balance
-
-⚠️ Important Notes
-File Storage
-Development: Files stored in src/uploads/
-
-Production (Railway): Files stored in /tmp/uploads/ (ephemeral)
-
-Recommendation: For production, use cloud storage (S3, Cloudinary) or Railway Volumes
-
-Database Considerations
-The updated_at column is optional in users table
-
-Ensure proper indexes on frequently queried columns
-
-Regular backups recommended for production
-
-Security
-Always use HTTPS in production
-
-Keep JWT_SECRET secure and rotate periodically
-
-Validate all user inputs
-
-Implement rate limiting for production
-
-🐛 Troubleshooting
-Common Issues
-"Service unavailable" on Railway
-
-Check environment variables
-
-Verify database connection
-
-Check Railway logs for errors
-
-Database connection errors
-
-Verify SUPABASE_DB_URL is correct
-
-Check if database is accessible
-
-Ensure SSL is properly configured
-
-File upload errors
-
-Check file size (max 5MB)
-
-Verify file format (JPEG/PNG only)
-
-Ensure upload directory has write permissions
-
-Debug Mode
-Enable detailed logging by setting NODE_ENV=development
-
-📄 License
+## 📄 License
 This project is for technical test purposes.
 
-👥 Contact & Support
-Repository: https://github.com/ricodev3/api-ppob-test
-
-Issues: Use GitHub Issues for bug reports
-
-
+## 👥 Contact & Support
+- **Repository**: [GitHub](https://github.com/ricodev3/api-ppob-test)
+- **Issues**: Use GitHub Issues for bug reports.
