@@ -19,7 +19,7 @@ exports.createTransaction = async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // 1. Get service - FIXED: Ensure proper column name
+    // 1. Get service 
     const serviceResult = await client.query(
       `SELECT service_code, service_name, service_tariff
        FROM services
@@ -38,7 +38,7 @@ exports.createTransaction = async (req, res) => {
 
     const service = serviceResult.rows[0];
     
-    // ✅ CRITICAL FIX: Parse to integers
+    // Parse to integers
     const tariff = parseInt(service.service_tariff, 10);
     if (isNaN(tariff)) {
       await client.query('ROLLBACK');
@@ -59,7 +59,7 @@ exports.createTransaction = async (req, res) => {
       throw new Error('User not found');
     }
 
-    // ✅ CRITICAL FIX: Parse to integer
+    // Parse to integer
     const balance = parseInt(userResult.rows[0].balance, 10);
     if (isNaN(balance)) {
       await client.query('ROLLBACK');
@@ -70,13 +70,9 @@ exports.createTransaction = async (req, res) => {
       });
     }
 
-    // 3. Debug log to see actual values
-    console.log('DEBUG: balance =', balance, 'tariff =', tariff);
-    console.log('DEBUG: balance type =', typeof balance, 'tariff type =', typeof tariff);
     
     // 4. Check balance - use integers
     if (balance < tariff) {
-      console.log('DEBUG: Insufficient!', balance, '<', tariff);
       await client.query('ROLLBACK');
       return res.status(400).json({
         status: 102,
