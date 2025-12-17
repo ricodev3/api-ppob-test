@@ -9,7 +9,7 @@ exports.createTransaction = async (req, res) => {
   if (!service_code) {
     return res.status(400).json({
       status: 102,
-      message: 'Service ataus Layanan tidak ditemukan',
+      message: 'Service atau Layanan tidak ditemukan',
       data: null
     });
   }
@@ -19,7 +19,7 @@ exports.createTransaction = async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // 1. Get service
+    // 1. Get service - FIXED: Ensure proper column name
     const serviceResult = await client.query(
       `SELECT service_code, service_name, service_tariff
        FROM services
@@ -31,12 +31,23 @@ exports.createTransaction = async (req, res) => {
       await client.query('ROLLBACK');
       return res.status(400).json({
         status: 102,
-        message: 'Service ataus Layanan tidak ditemukan',
+        message: 'Service atau Layanan tidak ditemukan',
         data: null
       });
     }
 
     const service = serviceResult.rows[0];
+    
+    // ✅ CRITICAL FIX: Parse to integers
+    const tariff = parseInt(service.service_tariff, 10);
+    if (isNaN(tariff)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        status: 102,
+        message: 'Invalid service tariff',
+        data: null
+      });
+    }
 
     // 2. Get user balance
     const userResult = await client.query(
@@ -48,10 +59,24 @@ exports.createTransaction = async (req, res) => {
       throw new Error('User not found');
     }
 
-    const balance = userResult.rows[0].balance;
+    // ✅ CRITICAL FIX: Parse to integer
+    const balance = parseInt(userResult.rows[0].balance, 10);
+    if (isNaN(balance)) {
+      await client.query('ROLLBACK');
+      return res.status(500).json({
+        status: 1,
+        message: 'Invalid user balance',
+        data: null
+      });
+    }
 
-    // 3. Check balance
-    if (balance < service.service_tariff) {
+    // 3. Debug log to see actual values
+    console.log('DEBUG: balance =', balance, 'tariff =', tariff);
+    console.log('DEBUG: balance type =', typeof balance, 'tariff type =', typeof tariff);
+    
+    // 4. Check balance - use integers
+    if (balance < tariff) {
+      console.log('DEBUG: Insufficient!', balance, '<', tariff);
       await client.query('ROLLBACK');
       return res.status(400).json({
         status: 102,
@@ -60,13 +85,13 @@ exports.createTransaction = async (req, res) => {
       });
     }
 
-    // 4. Deduct balance
+    // 5. Deduct balance
     await client.query(
       'UPDATE users SET balance = balance - $1 WHERE id = $2',
-      [service.service_tariff, user_id]
+      [tariff, user_id]
     );
 
-    // 5. Insert transaction
+    // 6. Insert transaction
     const invoiceNumber = `INV${Date.now()}`;
 
     const trxResult = await client.query(
@@ -78,13 +103,13 @@ exports.createTransaction = async (req, res) => {
         user_id,
         invoiceNumber,
         service.service_name,
-        service.service_tariff
+        tariff
       ]
     );
 
     await client.query('COMMIT');
 
-    // 6. Response
+    // 7. Response
     return res.json({
       status: 0,
       message: 'Transaksi berhasil',
@@ -100,7 +125,7 @@ exports.createTransaction = async (req, res) => {
 
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error(err);
+    console.error('Transaction error:', err.message, err.stack);
 
     return res.status(500).json({
       status: 1,
