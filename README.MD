@@ -50,7 +50,8 @@ CREATE TABLE users (
     last_name VARCHAR(100),
     profile_image TEXT,
     balance INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
